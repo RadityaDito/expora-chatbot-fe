@@ -1,18 +1,10 @@
 "use client";
 
 import type React from "react";
-
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar } from "@/components/ui/avatar";
 import {
@@ -29,56 +21,16 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ZoomableImage } from "@/components/zoomable-image";
 
-// Define the base URL as a constant
-// const BASE_URL = "https://vvd9ztsexf.execute-api.ap-southeast-1.amazonaws.com";
 const BASE_URL = "https://upload-s3-bucket.vercel.app";
 const UPLOAD_URL = "https://upload-s3-bucket.vercel.app";
+const MATCHMAKING_URL = "https://expora-matchmaking.vercel.app";
 
-// Mock data for countries
-const countries = [
-  { value: "us", label: "United States" },
-  { value: "eu", label: "European Union" },
-  { value: "cn", label: "China" },
-  { value: "jp", label: "Japan" },
-  { value: "au", label: "Australia" },
-  { value: "br", label: "Brazil" },
-  { value: "in", label: "India" },
-  { value: "ru", label: "Russia" },
-];
-
-// Mock responses based on country and image type
 const mockResponses = {
   welcome:
-    "Hello! I'm your Export Compliance Assistant. Upload a product image and select a destination country, and I'll analyze if your product is suitable for export to that market.",
+    "Hello! I'm your Export Compliance Assistant. Upload a product image, and I'll analyze if your product is suitable for export.",
   imageUploaded:
-    "I've received your product image. Please select a destination country to continue.",
-  analyzing: "Analyzing your product image for export to {country}...",
-  results: {
-    us: {
-      approved:
-        "Your product appears to comply with US import regulations. Key compliance points:\n\n• No prohibited symbols or markings\n• Labeling appears to meet FDA standards\n• No obvious restricted materials\n\nRecommendation: Proceed with export, but verify specific industry regulations that may apply.",
-      rejected:
-        "Your product may face challenges with US import regulations. Potential issues:\n\n• Product contains symbols that may violate US trademark laws\n• Labeling doesn't appear to meet FDA requirements\n• Possible restricted materials detected\n\nRecommendation: Consult with a compliance expert before proceeding.",
-    },
-    eu: {
-      approved:
-        "Your product appears to comply with EU import regulations. Key compliance points:\n\n• CE marking requirements appear to be met\n• No prohibited substances detected\n• Packaging appears to meet EU standards\n\nRecommendation: Ensure GDPR compliance if product collects user data.",
-      rejected:
-        "Your product may face challenges with EU import regulations. Potential issues:\n\n• Missing required CE marking\n• Possible non-compliance with REACH regulations\n• Packaging may not meet EU recycling standards\n\nRecommendation: Address these issues before attempting export to the EU.",
-    },
-    cn: {
-      approved:
-        "Your product appears to comply with Chinese import regulations. Key compliance points:\n\n• No politically sensitive imagery\n• Product appears to meet CCC certification requirements\n• Labeling appears compliant\n\nRecommendation: Verify specific industry requirements for China.",
-      rejected:
-        "Your product may face challenges with Chinese import regulations. Potential issues:\n\n• Contains imagery that may be politically sensitive\n• May not meet CCC certification requirements\n• Labeling may not comply with Chinese regulations\n\nRecommendation: Consult with a China trade expert before proceeding.",
-    },
-    default: {
-      approved:
-        "Based on my analysis, your product appears suitable for export to {country}. No obvious compliance issues detected, but I recommend verifying with local import regulations.",
-      rejected:
-        "Based on my analysis, your product may face compliance challenges for export to {country}. Consider consulting with a trade expert familiar with this market.",
-    },
-  },
+    "I've received your product image. Click send to start the analysis.",
+  analyzing: "Analyzing your product image...",
 };
 
 type Message = {
@@ -99,31 +51,27 @@ export function ExportChatbot() {
     },
   ]);
   const [inputValue, setInputValue] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState<string>("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
   const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
 
-  // Scroll to bottom of chat when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, []);
+  }, [messages]);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Create preview for immediate display
+      setImageFile(file);
       const reader = new FileReader();
       reader.onload = (event) => {
         setImagePreview(event.target?.result as string);
       };
       reader.readAsDataURL(file);
 
-      // Add user message with image
       addMessage({
         id: Date.now().toString(),
         content: "I've uploaded a product image for analysis.",
@@ -132,148 +80,100 @@ export function ExportChatbot() {
         imageUrl: URL.createObjectURL(file),
       });
 
-      // Upload to API
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const response = await fetch(`${UPLOAD_URL}/upload`, {
-          method: "POST",
-          body: formData,
-        });
-
-        console.log(response);
-
-        if (!response.ok) {
-          throw new Error("Upload failed");
-        }
-
-        const data = await response.json();
-        setUploadedImageUrl(data.file_url);
-
-        // Add bot response
-        addMessage({
-          id: Date.now().toString() + "-bot",
-          content: mockResponses.imageUploaded,
-          sender: "bot",
-          timestamp: new Date(),
-        });
-      } catch (error) {
-        console.error("Error uploading image:", error);
-        addMessage({
-          id: Date.now().toString() + "-error",
-          content: "There was an error uploading your image. Please try again.",
-          sender: "bot",
-          timestamp: new Date(),
-        });
-      }
-    }
-  };
-
-  const handleCountryChange = async (value: string) => {
-    setSelectedCountry(value);
-
-    if (imagePreview && uploadedImageUrl) {
-      const countryName =
-        countries.find((c) => c.value === value)?.label || value;
-
-      // Add user message about country selection
       addMessage({
-        id: Date.now().toString(),
-        content: `I want to export this product to ${countryName}.`,
-        sender: "user",
-        timestamp: new Date(),
-      });
-
-      // Add analyzing message
-      const analyzingMessage = mockResponses.analyzing.replace(
-        "{country}",
-        countryName
-      );
-      addMessage({
-        id: Date.now().toString() + "-analyzing",
-        content: analyzingMessage,
+        id: Date.now().toString() + "-bot",
+        content: mockResponses.imageUploaded,
         sender: "bot",
         timestamp: new Date(),
       });
+    }
+  };
 
-      console.log("uploadedImageUrl");
-      console.log(uploadedImageUrl);
-
-      // Call prediction API
-      setIsAnalyzing(true);
-      try {
-        const response = await fetch(`${BASE_URL}/predict`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            imagePath: uploadedImageUrl,
-            country: value,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Prediction failed");
-        }
-
-        const data = await response.json();
-
-        // Add API response as bot message
-        addMessage({
-          id: Date.now().toString() + "-result",
-          content: data.message,
-          sender: "bot",
-          timestamp: new Date(),
-        });
-      } catch (error) {
-        console.error("Error getting prediction:", error);
-        addMessage({
-          id: Date.now().toString() + "-error",
-          content:
-            "There was an error analyzing your product. Please try again.",
-          sender: "bot",
-          timestamp: new Date(),
-        });
-      } finally {
-        setIsAnalyzing(false);
-      }
-    } else if (!uploadedImageUrl && imagePreview) {
-      // Handle case where image preview exists but upload failed
+  const handleSendMessage = async () => {
+    if (!imageFile) {
       addMessage({
         id: Date.now().toString() + "-error",
-        content:
-          "Please wait for the image to finish uploading or try uploading again.",
+        content: "Please upload an image before sending.",
         sender: "bot",
         timestamp: new Date(),
       });
+      return;
     }
-  };
 
-  const handleSendMessage = () => {
+    setIsAnalyzing(true);
+
+    // Add user message if there's input
     if (inputValue.trim()) {
-      // Add user message
       addMessage({
         id: Date.now().toString(),
         content: inputValue,
         sender: "user",
         timestamp: new Date(),
       });
-
-      // Clear input
       setInputValue("");
+    }
 
-      // Simulate bot response
-      setTimeout(() => {
-        addMessage({
-          id: Date.now().toString() + "-bot",
-          content:
-            "I'm here to help with product export compliance. Please upload a product image and select a destination country to get started.",
-          sender: "bot",
-          timestamp: new Date(),
-        });
-      }, 1000);
+    // Add analyzing message
+    addMessage({
+      id: Date.now().toString() + "-analyzing",
+      content: mockResponses.analyzing,
+      sender: "bot",
+      timestamp: new Date(),
+    });
+
+    try {
+      // Upload image to S3
+      const formData = new FormData();
+      formData.append("file", imageFile);
+
+      const uploadResponse = await fetch(`${BASE_URL}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const uploadData = await uploadResponse.json();
+      const uploadedImageUrl = uploadData.file_url;
+
+      // Call prediction API
+      const predictResponse = await fetch(`${BASE_URL}/predict`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          imagePath: uploadedImageUrl,
+        }),
+      });
+
+      if (!predictResponse.ok) {
+        throw new Error("Prediction failed");
+      }
+
+      const predictData = await predictResponse.json();
+
+      // Add API response as bot message
+      addMessage({
+        id: Date.now().toString() + "-result",
+        content: predictData.message,
+        sender: "bot",
+        timestamp: new Date(),
+      });
+    } catch (error) {
+      console.error("Error during analysis:", error);
+      addMessage({
+        id: Date.now().toString() + "-error",
+        content: "There was an error analyzing your product. Please try again.",
+        sender: "bot",
+        timestamp: new Date(),
+      });
+    } finally {
+      setIsAnalyzing(false);
+      setImageFile(null);
+      setImagePreview(null);
     }
   };
 
@@ -309,13 +209,11 @@ export function ExportChatbot() {
           <div className="mb-4">
             <Button
               variant="outline"
-              onClick={() =>
-                window.open("https://your-other-project-url.com", "_blank")
-              }
+              onClick={() => window.open(MATCHMAKING_URL, "_blank")}
               className="w-full"
             >
               <ExternalLink className="mr-2 h-4 w-4" />
-              Visit Our Other Project
+              Find Buyer
             </Button>
           </div>
 
@@ -404,26 +302,6 @@ export function ExportChatbot() {
             </div>
           </ScrollArea>
 
-          {/* Country selection */}
-          <div className="mt-3 md:mt-4">
-            <Select
-              value={selectedCountry}
-              onValueChange={handleCountryChange}
-              disabled={!imagePreview || isAnalyzing}
-            >
-              <SelectTrigger className="w-full text-sm md:text-base">
-                <SelectValue placeholder="Select destination country" />
-              </SelectTrigger>
-              <SelectContent>
-                {countries.map((country) => (
-                  <SelectItem key={country.value} value={country.value}>
-                    {country.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Input area */}
           <div className="mt-3 flex gap-2">
             <Button
@@ -437,7 +315,7 @@ export function ExportChatbot() {
               <span className="sr-only">Upload image</span>
             </Button>
             <Input
-              placeholder="Type a message..."
+              placeholder="Type a message (optional)..."
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
@@ -447,7 +325,7 @@ export function ExportChatbot() {
             <Button
               size="icon"
               onClick={handleSendMessage}
-              disabled={!inputValue.trim() || isAnalyzing}
+              disabled={!imageFile || isAnalyzing}
               className="flex-shrink-0"
             >
               <Send className="h-5 w-5" />
