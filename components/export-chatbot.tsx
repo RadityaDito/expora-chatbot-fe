@@ -24,7 +24,6 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 const BASE_URL = "https://upload-s3-bucket.vercel.app";
-const MATCHMAKING_URL = "https://expora-matchmaking.vercel.app";
 
 const mockResponses = {
   welcome:
@@ -210,7 +209,9 @@ export function ExportChatbot() {
           <div className="mb-4">
             <Button
               variant="outline"
-              onClick={() => window.open(MATCHMAKING_URL, "_blank")}
+              onClick={() =>
+                window.open("https://your-other-project-url.com", "_blank")
+              }
               className="w-full"
             >
               <ExternalLink className="mr-2 h-4 w-4" />
@@ -249,82 +250,84 @@ export function ExportChatbot() {
                       )}
                       <div
                         className={cn(
-                          "rounded-lg p-4",
+                          "rounded-lg p-4 max-w-[350px] sm:max-w-[400px] md:max-w-[500px] overflow-x-auto",
                           message.sender === "user"
                             ? "bg-primary text-primary-foreground ml-10"
                             : "bg-muted/50 mr-10"
                         )}
                       >
-                        <div className="flex flex-col gap-2">
-                          <div className="whitespace-pre-line">
-                            {message.sender === "bot" ? (
-                              <ReactMarkdown
-                                remarkPlugins={[remarkGfm]}
-                                components={{
-                                  ol: ({ children }) => (
-                                    <ol className="list-decimal ml-6">
-                                      {children}
-                                    </ol>
-                                  ),
-                                  ul: ({ children }) => (
-                                    <ul className="list-disc ml-6">
-                                      {children}
-                                    </ul>
-                                  ),
-                                  li: ({ children }) => (
-                                    <li className="mb-1">{children}</li>
-                                  ),
-                                  p: ({ children }) => (
-                                    <p className="mb-1">{children}</p>
-                                  ), // Reduce space between paragraphs
-                                  br: () => <br className="leading-tight" />, // Ensure consistent new line spacing
-                                  div: ({ node, ...props }) => (
-                                    <div
-                                      className="prose prose-sm dark:prose-invert max-w-none leading-normal"
-                                      {...props}
-                                    />
-                                  ),
-                                }}
-                              >
-                                {message.content.replace(/\n/g, "  \n")}
-                              </ReactMarkdown>
-                            ) : (
-                              message.content
-                            )}
-                          </div>
-                          {message.imageUrl && (
-                            <div className="mt-2">
-                              <img
-                                src={message.imageUrl || "/placeholder.svg"}
-                                alt="Uploaded product"
-                                className="max-h-48 rounded-md object-contain cursor-pointer"
-                                onClick={() =>
-                                  handleImageClick(message.imageUrl!)
-                                }
-                              />
-                            </div>
-                          )}
-                          <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                            <span>{formatTime(message.timestamp)}</span>
-                            {message.sender === "bot" && (
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => copyMessage(message.content)}
-                                  className="p-1 hover:bg-muted rounded-md transition-colors"
+                        <div className="min-w-[250px] max-md:px-5 md:px8">
+                          <div className="flex flex-col gap-2">
+                            <div className="whitespace-pre-line">
+                              {message.sender === "bot" ? (
+                                <ReactMarkdown
+                                  remarkPlugins={[remarkGfm]}
+                                  components={{
+                                    ol: ({ children }) => (
+                                      <ol className="list-decimal ml-6">
+                                        {children}
+                                      </ol>
+                                    ),
+                                    ul: ({ children }) => (
+                                      <ul className="list-disc ml-6">
+                                        {children}
+                                      </ul>
+                                    ),
+                                    li: ({ children }) => (
+                                      <li className="mb-1">{children}</li>
+                                    ),
+                                    p: ({ children }) => (
+                                      <p className="mb-1">{children}</p>
+                                    ), // Reduce space between paragraphs
+                                    br: () => <br className="leading-tight" />, // Ensure consistent new line spacing
+                                    div: ({ node, ...props }) => (
+                                      <div
+                                        className="prose prose-sm dark:prose-invert max-w-none leading-normal"
+                                        {...props}
+                                      />
+                                    ),
+                                  }}
                                 >
-                                  <Copy className="h-4 w-4" />
-                                </button>
-                                <button className="p-1 hover:bg-muted rounded-md transition-colors">
-                                  <Download className="h-4 w-4" />
-                                </button>
-                                <button className="p-1 hover:bg-muted rounded-md transition-colors">
-                                  <ThumbsUp className="h-4 w-4" />
-                                </button>
-                                <button className="p-1 hover:bg-muted rounded-md transition-colors">
-                                  <ThumbsDown className="h-4 w-4" />
-                                </button>
+                                  {message.content.replace(/\n/g, "  \n")}
+                                </ReactMarkdown>
+                              ) : (
+                                message.content
+                              )}
+                            </div>
+                            {message.imageUrl && (
+                              <div className="mt-2">
+                                <img
+                                  src={message.imageUrl || "/placeholder.svg"}
+                                  alt="Uploaded product"
+                                  className="max-h-48 rounded-md object-contain cursor-pointer"
+                                  onClick={() =>
+                                    handleImageClick(message.imageUrl!)
+                                  }
+                                />
                               </div>
                             )}
+                            <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                              <span>{formatTime(message.timestamp)}</span>
+                              {message.sender === "bot" && (
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => copyMessage(message.content)}
+                                    className="p-1 hover:bg-muted rounded-md transition-colors"
+                                  >
+                                    <Copy className="h-4 w-4" />
+                                  </button>
+                                  <button className="p-1 hover:bg-muted rounded-md transition-colors">
+                                    <Download className="h-4 w-4" />
+                                  </button>
+                                  <button className="p-1 hover:bg-muted rounded-md transition-colors">
+                                    <ThumbsUp className="h-4 w-4" />
+                                  </button>
+                                  <button className="p-1 hover:bg-muted rounded-md transition-colors">
+                                    <ThumbsDown className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
