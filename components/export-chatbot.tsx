@@ -24,6 +24,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 const BASE_URL = "https://upload-s3-bucket.vercel.app";
+const MATCHMAKING_URL = "https://expora-matchmaking.vercel.app";
 
 const mockResponses = {
   welcome:
@@ -209,9 +210,7 @@ export function ExportChatbot() {
           <div className="mb-4">
             <Button
               variant="outline"
-              onClick={() =>
-                window.open("https://your-other-project-url.com", "_blank")
-              }
+              onClick={() => window.open(MATCHMAKING_URL, "_blank")}
               className="w-full"
             >
               <ExternalLink className="mr-2 h-4 w-4" />
