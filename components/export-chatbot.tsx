@@ -30,8 +30,8 @@ import { format } from "date-fns";
 import { ZoomableImage } from "@/components/zoomable-image";
 
 // Define the base URL as a constant
-const BASE_URL = "https://vvd9ztsexf.execute-api.ap-southeast-1.amazonaws.com";
-// const BASE_URL = "https://upload-s3-bucket.vercel.app";
+// const BASE_URL = "https://vvd9ztsexf.execute-api.ap-southeast-1.amazonaws.com";
+const BASE_URL = "https://upload-s3-bucket.vercel.app";
 const UPLOAD_URL = "https://upload-s3-bucket.vercel.app";
 
 // Mock data for countries
