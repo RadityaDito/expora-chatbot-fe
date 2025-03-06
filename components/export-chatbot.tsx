@@ -20,9 +20,10 @@ import {
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ZoomableImage } from "@/components/zoomable-image";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const BASE_URL = "https://upload-s3-bucket.vercel.app";
-const UPLOAD_URL = "https://upload-s3-bucket.vercel.app";
 const MATCHMAKING_URL = "https://expora-matchmaking.vercel.app";
 
 const mockResponses = {
@@ -256,7 +257,40 @@ export function ExportChatbot() {
                       >
                         <div className="flex flex-col gap-2">
                           <div className="whitespace-pre-line">
-                            {message.content}
+                            {message.sender === "bot" ? (
+                              <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={{
+                                  ol: ({ children }) => (
+                                    <ol className="list-decimal ml-6">
+                                      {children}
+                                    </ol>
+                                  ),
+                                  ul: ({ children }) => (
+                                    <ul className="list-disc ml-6">
+                                      {children}
+                                    </ul>
+                                  ),
+                                  li: ({ children }) => (
+                                    <li className="mb-1">{children}</li>
+                                  ),
+                                  p: ({ children }) => (
+                                    <p className="mb-1">{children}</p>
+                                  ), // Reduce space between paragraphs
+                                  br: () => <br className="leading-tight" />, // Ensure consistent new line spacing
+                                  div: ({ node, ...props }) => (
+                                    <div
+                                      className="prose prose-sm dark:prose-invert max-w-none leading-normal"
+                                      {...props}
+                                    />
+                                  ),
+                                }}
+                              >
+                                {message.content.replace(/\n/g, "  \n")}
+                              </ReactMarkdown>
+                            ) : (
+                              message.content
+                            )}
                           </div>
                           {message.imageUrl && (
                             <div className="mt-2">

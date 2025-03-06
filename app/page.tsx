@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ExportChatbot } from "@/components/export-chatbot";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Expora - AI Export Compliance Assistant",
@@ -11,10 +12,12 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-gray-50/50 p-2 md:p-6 lg:p-24">
       <div className="w-full max-w-3xl mx-auto">
-        <img
+        <Image
+          className="mx-auto"
           src="/expora-logo.jpg"
-          alt="Expora Logo"
-          className="w-32 h-32 mx-auto "
+          alt="Expora"
+          width={120}
+          height={20}
         />
         <h1 className="text-xl md:text-3xl font-bold text-center mb-2 md:mb-6">
           Expora Chatbot
