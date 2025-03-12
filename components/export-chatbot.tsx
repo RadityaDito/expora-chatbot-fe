@@ -25,7 +25,8 @@ import remarkGfm from "remark-gfm";
 
 // const BASE_URL = "https://upload-s3-bucket.vercel.app";
 // const BASE_URL = "http://localhost:8000";
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+// const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const BASE_URL = "http://47.129.32.201:8000";
 
 const MATCHMAKING_URL = "https://exports-match.vercel.app/";
 
