@@ -23,7 +23,10 @@ import { ZoomableImage } from "@/components/zoomable-image";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-const BASE_URL = "https://upload-s3-bucket.vercel.app";
+// const BASE_URL = "https://upload-s3-bucket.vercel.app";
+// const BASE_URL = "http://localhost:8000";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
 const MATCHMAKING_URL = "https://expora-matchmaking.vercel.app";
 
 const mockResponses = {
@@ -140,7 +143,7 @@ export function ExportChatbot() {
       const uploadedImageUrl = uploadData.file_url;
 
       // Call prediction API
-      const predictResponse = await fetch(`${BASE_URL}/predict`, {
+      const predictResponse = await fetch(`${BASE_URL}/uploadV2`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
