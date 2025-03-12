@@ -27,7 +27,7 @@ import remarkGfm from "remark-gfm";
 // const BASE_URL = "http://localhost:8000";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-const MATCHMAKING_URL = "https://expora-matchmaking.vercel.app";
+const MATCHMAKING_URL = "https://exports-match.vercel.app/";
 
 const mockResponses = {
   welcome:
